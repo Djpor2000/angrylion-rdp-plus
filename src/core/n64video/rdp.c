@@ -620,6 +620,7 @@ void rdp_sync_full(struct rdp_state* wstate, const uint32_t* args)
     config.gfx.mi_intr_cb();
 }
 
+//TODO: Figure out what this does
 void rdp_set_other_modes(struct rdp_state* wstate, const uint32_t* args)
 {
     wstate->other_modes.cycle_type          = (args[0] >> 20) & 3;

@@ -2034,6 +2034,12 @@ static void render_spans_copy(struct rdp_state* wstate, int start, int end, int 
         rdram_complete_delayed_hbwrites(delayedhbwidx);
 }
 
+//TODO: Start here tomorrw:
+/**
+ *  
+ * @param rdp_state Global RDP state to be modified
+ * @param ewdata
+*/
 static void edgewalker_for_prims(struct rdp_state* wstate, int32_t* ewdata)
 {
     int j = 0;
@@ -2063,28 +2069,37 @@ static void edgewalker_for_prims(struct rdp_state* wstate, int32_t* ewdata)
     int oldhb_diff = wstate->fb_size == PIXEL_SIZE_16BIT ? 7 : 3;
     wstate->last_overwriting_scanline = -1;
 
+    //check if 
     flip = (ewdata[0] & 0x800000) != 0;
     wstate->max_level = (ewdata[0] >> 19) & 7;
     tilenum = (ewdata[0] >> 16) & 7;
 
-
+    //beginning y of the primitive
     yl = SIGN(ewdata[0], 14);
+    //middle point y of the primitive
     ym = ewdata[1] >> 16;
     ym = SIGN(ym, 14);
+    //ending y of the primitive
     yh = SIGN(ewdata[1], 14);
 
+    //beginning x of the primitive
     xl = SIGN(ewdata[2], 28);
+    //ending x of the primitive
     xh = SIGN(ewdata[4], 28);
+    //midpoint x of the primitive
     xm = SIGN(ewdata[6], 28);
 
+    //slope l
     dxldy = SIGN(ewdata[3], 30);
 
 
-
+    //slope h
     dxhdy = SIGN(ewdata[5], 30);
+    //slope m
     dxmdy = SIGN(ewdata[7], 30);
 
 
+    //does SOMETHING to all the data in ewdata, figure out what
     r    = (ewdata[8] & 0xffff0000) | ((ewdata[12] >> 16) & 0x0000ffff);
     g    = ((ewdata[8] << 16) & 0xffff0000) | (ewdata[12] & 0x0000ffff);
     b    = (ewdata[9] & 0xffff0000) | ((ewdata[13] >> 16) & 0x0000ffff);
@@ -2122,12 +2137,14 @@ static void edgewalker_for_prims(struct rdp_state* wstate, int32_t* ewdata)
     dzde = ewdata[42];
     dzdy = ewdata[43];
 
+    //ewdata data copying end
 
 
 
 
 
 
+    //write local data to RDP state
     wstate->spans_ds = dsdx & ~0x1f;
     wstate->spans_dt = dtdx & ~0x1f;
     wstate->spans_dw = dwdx & ~0x1f;
@@ -2549,9 +2566,13 @@ static void rasterizer_init(struct rdp_state* wstate)
 
 void rdp_tri_noshade(struct rdp_state* wstate, const uint32_t* args)
 {
+    //create array of 44 ints (176 bytes)
     int32_t ewdata[CMD_MAX_INTS];
+    //copy 8 ints (32 bytes) from args to ewdata
     memcpy(&ewdata[0], args, 8 * sizeof(int32_t));
+    //fill the rest of array with 0
     memset(&ewdata[8], 0, 36 * sizeof(int32_t));
+    //call edgewalker function
     edgewalker_for_prims(wstate, ewdata);
 }
 
